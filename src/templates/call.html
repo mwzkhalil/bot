@@ -23,11 +23,11 @@
         <img src="{{ url_for('static', filename='assets/logo 1.png') }}" style="width:180px; height:70px;" />
     </div>
 
-    <!-- Start Call Button (hidden initially if auto-start) -->
-    <button id="callButton" style="display: flex;">Start Call</button>
+    <!-- Start Call Button -->
+    <button id="callButton" style="display: block;">Start Call</button>
 
     <!-- Ring Box / Call Interface -->
-    <div id="ringBox" style="display: flex;">
+    <div id="ringBox" style="display: none;">
         <!-- OUTGOING CALL -->
         <div class="call-container" id="outgoing">
             <img src="{{ url_for('static', filename='assets/Mask group.png') }}" class="logo" />
@@ -58,11 +58,11 @@
             <h2>Yaar Raqami Support</h2>
             <p class="call-status">You are now connected. Speak freely!</p>
             
-            <div class="avatar-container">
+            <!-- <div class="avatar-container">
                 <div class="call-animation">
                     <span></span><span></span><span></span>
                 </div>
-            </div>
+            </div> -->
 
             <div class="timer">00:00:00</div>
 

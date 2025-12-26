@@ -58,10 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Create star elements for animation
     createStars();
-    
-    // Auto-start the call
-    console.log('Auto-starting call...');
-    startCall();
 });
 
 // Create animated stars in the background
@@ -98,7 +94,7 @@ async function startCall() {
     
     startBeeping();
     createStars();
-    showLoader('Connecting to AI assistant...');
+    // showLoader('Connecting to AI assistant...');
     
     try {
         await initOpenAIRealtime();
@@ -135,7 +131,7 @@ const fns = {
     },
     sendEmail: async ({ message, customer_name, customer_email }) => {
         try {
-            showLoader('Sending email...');
+            // showLoader('Sending email...');
             const response = await fetch(`${BASE_URL}/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -369,39 +365,33 @@ function showNotification(message, type = 'success') {
 }
 
 function endCall() {
+    console.log('End call initiated');
+    
+    // Immediate UI feedback - hide screens and show button
+    outgoingScreen.style.display = 'none';
+    connectedScreen.style.display = 'none';
+    ringBox.style.display = 'none';
+    callButton.style.display = 'block';
+    
+    // Stop audio and timers
     stopBeeping();
     hideLoader();
     
     if (timerInterval) clearInterval(timerInterval);
     
+    // Close peer connection
     if (peerConnection) {
         peerConnection.close();
         peerConnection = null;
     }
     
+    // Send end call notification to server (async, non-blocking)
     if (isConnected) {
         fetch(`${BASE_URL}/end-call`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ duration: seconds })
         }).catch(error => console.error('Failed to record call end:', error));
-        
-        callStatus.textContent = `Call ended - Duration: ${formatTime(seconds)}`;
-        avatarContainer.classList.remove('ringing');
-        endCallBtn.style.display = 'none';
-        // showNotification('Call ended successfully', 'success');
-        
-        setTimeout(() => {
-            ringBox.style.display = 'none';
-            callButton.style.display = 'block';
-            timer.style.display = 'none';
-        }, 3000);
-    } else {
-        callStatus.textContent = 'Call terminated';
-        setTimeout(() => {
-            ringBox.style.display = 'none';
-            callButton.style.display = 'block';
-        }, 1500);
     }
     
     isConnected = false;
@@ -413,4 +403,9 @@ function endCall() {
             star.parentNode.removeChild(star);
         }
     });
+    
+    // Reset avatar animation
+    if (avatarContainer) {
+        avatarContainer.classList.remove('ringing');
+    }
 }

@@ -1,88 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Raqami Bank</title>
+    <title>Calling Raqami Support</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/call.css') }}" />
     <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='css/styles.css') }}"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="shortcut icon"
-      href="{{ url_for('static', filename='assets/favicon.ico') }}"
-      type="image/x-icon"
-    />
-    <meta
-      name="description"
-      content="AI-powered calling solution for your business needs"
-    />
-  </head>
-  <body>
-    <!-- Header with logo -->
-    <header class="header">
-      <div class="logo">
-        <img
-          src="{{ url_for('static', filename='assets/raqmibank.png') }}"
-          alt="Pak Qatar Logo"
-        />
-        <span class="logo-text">Raqami Bank</span>
-      </div>
-    </header>
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-vEM8zT5ZHMCBkTk0v9vR9B5vZB6hBnsICp51Lz9+F7c9fWl+nXMFVhF+HNL9L7F3FfWXhXpLZT5sDdPYcFfNqg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- Main container -->
-    <div class="container">
-      <div class="card">
-        <h1 class="card-title">AI-Powered Customer Support</h1>
-        <p class="card-text" dir="rtl">
-          اپنے سوالات کے فوری جوابات کے لیے ہمارے AI اسسٹنٹ سے رابطہ کریں۔ جدید
-          آواز کی ٹیکنالوجی کے ذریعے بہترین تجربہ حاصل کریں۔
-        </p>
+    <!-- Socket.IO client for signaling
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script> -->
+</head>
 
-        <button id="callButton" style="color: #00923f">
-          <i class="fas fa-phone-alt"></i> Start Call
-        </button>
-      </div>
+<body>
+    <div class="logo-nav">
+        <img src="{{ url_for('static', filename='assets/logo 1.png') }}" style="width:180px; height:70px;" />
     </div>
 
-    <!-- Ring Box for call interface -->
-    <div id="ringBox">
-      <div class="ring-content">
-        <div class="wave"></div>
-        <div class="wave" style="animation-delay: 0.6s"></div>
-        <div class="wave" style="animation-delay: 1.2s"></div>
+    <!-- Start Call Button (hidden initially if auto-start) -->
+    <button id="callButton" style="display: flex;">Start Call</button>
 
-        <div class="avatar-container ringing">
-          <div class="avatar">
-            <i class="fas fa-robot"></i>
-          </div>
+    <!-- Ring Box / Call Interface -->
+    <div id="ringBox" style="display: flex;">
+        <!-- OUTGOING CALL -->
+        <div class="call-container" id="outgoing">
+            <img src="{{ url_for('static', filename='assets/Mask group.png') }}" class="logo" />
+
+            <h2>Calling Raqami Support</h2>
+            <p class="call-status">Connecting to digital assistant...</p>
+            
+            <div class="avatar-container ringing">
+                <div class="call-animation">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+
+            <div class="timer">00:00:00</div>
+
+            <button class="end-call-btn" id="endCallBtn" title="End Call">
+                <img src="{{ url_for('static', filename='assets/end_call.png') }}" style="width:80px; height:20px; padding-top: 4px;" />
+            </button>
         </div>
 
-        <div class="call-status">Initializing...</div>
-        <div class="timer">00:00:00</div>
+        <audio id="beepSound" src="{{ url_for('static', filename='assets/ring.mp3') }}" preload="auto"></audio>
+        <audio id="remoteAudio" autoplay></audio>
 
-        <button id="endCallBtn" style="display: none">
-          <i class="fas fa-phone-slash"></i> End Call
-        </button>
+        <!-- CONNECTED CALL -->
+        <div class="call-container" id="connected" style="display: none;">
+            <img src="{{ url_for('static', filename='assets/Mask group.png') }}" class="logo" />
+            <h8>Connected with</h8>
+            <h2>Yaar Raqami Support</h2>
+            <p class="call-status">You are now connected. Speak freely!</p>
+            
+            <div class="avatar-container">
+                <div class="call-animation">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
 
-        <div class="loader" style="display: none">
-          <div class="loader-spinner"></div>
-          <span>Processing...</span>
+            <div class="timer">00:00:00</div>
+
+            <button class="end-call-btn" id="endCallBtnConnected" title="End Call">
+                <img src="{{ url_for('static', filename='assets/end_call.png') }}" style="width:80px; height:19px; padding-top: 4px;" />
+            </button>
         </div>
-      </div>
+
+        <!-- Loader for processing states -->
+        <div class="loader" style="display: none;">
+            <div class="loader-spinner"></div>
+            <span>Processing...</span>
+        </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">&copy; 2025 PROXIMA AI. All rights reserved.</footer>
+    <div class="help">
+        <img src="{{ url_for('static', filename='assets/help.png') }}" style="width:80px; height:70px;" />
+    </div>
 
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-  </body>
+</body>
+
 </html>

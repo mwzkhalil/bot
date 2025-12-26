@@ -1,4 +1,9 @@
 // Audio setup
+console.log('app.js loaded successfully');
+
+// Base URL for API calls
+const BASE_URL = 'http://localhost:8000';
+
 const beepSound = new Audio('/static/assets/beep.mp3');
 let beepInterval;
 
@@ -10,23 +15,53 @@ let seconds = 0;
 let isConnected = false;
 
 // DOM elements
-let ringBox, callStatus, timer, endCallBtn, callButton, avatarContainer;
+let ringBox, callStatus, timer, endCallBtn, endCallBtnConnected, callButton, avatarContainer, outgoingScreen, connectedScreen;
 
 // Initialize elements when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded - Initializing app.js');
     ringBox = document.getElementById('ringBox');
     callStatus = document.querySelector('.call-status');
     timer = document.querySelector('.timer');
     endCallBtn = document.getElementById('endCallBtn');
+    endCallBtnConnected = document.getElementById('endCallBtnConnected');
     callButton = document.getElementById('callButton');
     avatarContainer = document.querySelector('.avatar-container');
+    outgoingScreen = document.getElementById('outgoing');
+    connectedScreen = document.getElementById('connected');
+    
+    console.log('Elements found:', {
+        ringBox: !!ringBox,
+        callStatus: !!callStatus,
+        timer: !!timer,
+        endCallBtn: !!endCallBtn,
+        endCallBtnConnected: !!endCallBtnConnected,
+        callButton: !!callButton,
+        avatarContainer: !!avatarContainer,
+        outgoingScreen: !!outgoingScreen,
+        connectedScreen: !!connectedScreen
+    });
     
     // Add event listeners
-    callButton.addEventListener('click', startCall);
-    endCallBtn.addEventListener('click', endCall);
+    if (callButton) {
+        callButton.addEventListener('click', startCall);
+        console.log('callButton listener added');
+    }
+    if (endCallBtn) {
+        endCallBtn.addEventListener('click', endCall);
+        console.log('endCallBtn listener added');
+    }
+    if (endCallBtnConnected) {
+        endCallBtnConnected.addEventListener('click', endCall);
+        console.log('endCallBtnConnected listener added');
+    }
     
     // Create star elements for animation
     createStars();
+    
+    // Auto-start the call
+    console.log('Auto-starting call...');
+    startCall();
 });
 
 // Create animated stars in the background
@@ -54,7 +89,7 @@ function createStars() {
 }
 
 async function startCall() {
-    ringBox.style.display = 'block';
+    ringBox.style.display = 'flex';
     callButton.style.display = 'none';
     callStatus.textContent = 'Ringing...';
     
@@ -101,7 +136,7 @@ const fns = {
     sendEmail: async ({ message, customer_name, customer_email }) => {
         try {
             showLoader('Sending email...');
-            const response = await fetch('/send-email', {
+            const response = await fetch(`${BASE_URL}/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -130,7 +165,7 @@ const fns = {
 
 async function initOpenAIRealtime() {
     try {
-        const tokenResponse = await fetch("/session");
+        const tokenResponse = await fetch(`${BASE_URL}/session`);
         const data = await tokenResponse.json();
         const EPHEMERAL_KEY = data.client_secret.value;
 
@@ -140,15 +175,24 @@ async function initOpenAIRealtime() {
             if (peerConnection.connectionState === 'connected') {
                 stopBeeping();
                 isConnected = true;
-                callStatus.textContent = 'Connected to AI Assistant';
-                timer.style.display = 'block';
-                endCallBtn.style.display = 'block';
                 hideLoader();
-                avatarContainer.classList.remove('ringing');
+                
+                // Switch to connected screen
+                outgoingScreen.style.display = 'none';
+                connectedScreen.style.display = 'flex';
+                
+                // Update connected screen elements
+                const connectedStatus = connectedScreen.querySelector('.call-status');
+                const connectedTimer = connectedScreen.querySelector('.timer');
+                const connectedAvatar = connectedScreen.querySelector('.avatar-container');
+                
+                if (connectedStatus) connectedStatus.textContent = 'You are now connected. Speak freely!';
+                if (connectedAvatar) connectedAvatar.classList.remove('ringing');
+                
                 startTimer();
                 
                 // Celebratory animation for successful connection
-                showNotification('Connection established!', 'success');
+                // showNotification('Connection established!', 'success');
             } else if (peerConnection.connectionState === 'failed' || 
                        peerConnection.connectionState === 'disconnected' || 
                        peerConnection.connectionState === 'closed') {
@@ -156,7 +200,7 @@ async function initOpenAIRealtime() {
                 if (isConnected) {
                     endCall();
                 } else {
-                    showNotification('Connection failed', 'error');
+                    // showNotification('Connection failed', 'error');
                     endCall();
                 }
             }
@@ -266,17 +310,24 @@ async function initOpenAIRealtime() {
     } catch (error) {
         console.error("Error:", error);
         hideLoader();
-        showNotification('Connection error: ' + error.message, 'error');
+        // showNotification('Connection error: ' + error.message, 'error');
         endCall();
     }
 }
 
 function startTimer() {
     seconds = 0;
-    timer.textContent = formatTime(seconds);
+    const outgoingTimer = outgoingScreen.querySelector('.timer');
+    const connectedTimer = connectedScreen.querySelector('.timer');
+    
+    if (outgoingTimer) outgoingTimer.textContent = formatTime(seconds);
+    if (connectedTimer) connectedTimer.textContent = formatTime(seconds);
+    
     timerInterval = setInterval(() => {
         seconds++;
-        timer.textContent = formatTime(seconds);
+        const formattedTime = formatTime(seconds);
+        if (outgoingTimer) outgoingTimer.textContent = formattedTime;
+        if (connectedTimer) connectedTimer.textContent = formattedTime;
     }, 1000);
 }
 
@@ -329,7 +380,7 @@ function endCall() {
     }
     
     if (isConnected) {
-        fetch('/end-call', {
+        fetch(`${BASE_URL}/end-call`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ duration: seconds })
@@ -338,7 +389,7 @@ function endCall() {
         callStatus.textContent = `Call ended - Duration: ${formatTime(seconds)}`;
         avatarContainer.classList.remove('ringing');
         endCallBtn.style.display = 'none';
-        showNotification('Call ended successfully', 'success');
+        // showNotification('Call ended successfully', 'success');
         
         setTimeout(() => {
             ringBox.style.display = 'none';

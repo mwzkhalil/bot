@@ -13,7 +13,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
+app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR, static_url_path='/static')
 # app = Flask(__name__, template_folder='templates', static_folder='static')
 CORS(app)  # Enable CORS if needed
 
@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def index():
-    logging.debug("Rendering call.html template.")
+    # return
     return render_template('call.html')
 
 @app.route('/session', methods=['GET'])
@@ -686,4 +686,4 @@ def end_call():
 #         return jsonify({'error': f"Email error: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(port=5051, debug=False)
+    app.run(port=8000, debug=False)
